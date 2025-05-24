@@ -1,5 +1,5 @@
 import { serialize } from 'next-mdx-remote/serialize';
-import { getMDXContent, supabase } from '../supabase';
+import { getMDXContent, supabase } from '../supabase/client';
 
 export async function getPostBySlug(slug: string) {
   const { data: post, error } = await supabase.from('blog_table').select('*').eq('slug', slug).single();

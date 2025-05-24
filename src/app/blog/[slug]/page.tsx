@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/common/ui/button';
 import { getPostBySlug, getAllPosts } from '@/lib/utils/blog';
 import { MDXContent } from '@/components/mdx/mdx-content';
-import type { BlogPost } from '@/lib/supabase';
+import { BlogPost } from '@/lib/supabase/client';
 
 type BlogPostPageProps = {
   params: Promise<{
