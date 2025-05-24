@@ -1,8 +1,17 @@
-import { getAllBlogPosts } from '@/lib/utils/blog';
+import { getAllPosts } from '@/lib/utils/blog';
 import Link from 'next/link';
 
-const BlogPage = () => {
-  const posts = getAllBlogPosts();
+// 정적 생성을 위한 설정
+export const dynamic = 'force-static';
+
+// 빌드 시점에 데이터 가져오기
+async function getStaticPosts() {
+  const posts = await getAllPosts();
+  return posts;
+}
+
+const BlogPage = async () => {
+  const posts = await getStaticPosts();
 
   return (
     <div className="space-y-12 pt-8">
@@ -35,12 +44,12 @@ const BlogPage = () => {
             <article key={post.id} className="group space-y-3 pb-8 border-b border-border/30 last:border-b-0">
               <div className="space-y-2">
                 <h3 className="text-2xl font-semibold tracking-tight group-hover:text-primary transition-colors">
-                  <Link href={`/blog/${post.id}`} className="block">
+                  <Link href={`/blog/${post.slug}`} className="block">
                     {post.title}
                   </Link>
                 </h3>
                 <time className="text-sm text-muted-foreground font-medium">
-                  {new Date(post.date).toLocaleDateString('en-US', {
+                  {new Date(post.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
