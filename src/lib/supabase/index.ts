@@ -1,4 +1,4 @@
-import { supabase } from '../supabase/client';
+import { supabase } from './client';
 
 export async function getAllPosts() {
   try {

@@ -1,23 +1,46 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/common/ui/button';
-import { getAllPosts } from '@/lib/utils/blog';
-import { BlogPost } from '@/lib/supabase/client';
+import { BlogPost } from '@/lib/supabase/type';
+import { getAllPosts } from '@/lib/supabase';
+import { Metadata } from 'next';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// 정적 생성을 위한 설정
 export const dynamic = 'force-static';
 
-// 빌드 시점에 모든 포스트의 경로 생성
 export async function generateStaticParams() {
   const posts = await getAllPosts();
-  return posts.map((post: BlogPost) => ({
-    slug: post.slug,
-  }));
+  return posts.map((post: BlogPost) => {
+    return {
+      slug: post.slug,
+    };
+  });
+}
+
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const posts = await getAllPosts();
+  const post = posts.find((post) => post.slug === slug);
+
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested blog post could not be found.',
+    };
+  }
+
+  return {
+    title: post.title,
+    description: post.description || post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.description || post.excerpt,
+      type: 'article',
+      publishedTime: post.publishedAt,
+      authors: [post.author],
+    },
+  };
 }
 
 const BlogPostPage = async ({ params }: BlogPostPageProps) => {
@@ -31,12 +54,6 @@ const BlogPostPage = async ({ params }: BlogPostPageProps) => {
   return (
     <article className="space-y-8 pt-8">
       <div className="space-y-4">
-        <Button variant="ghost" asChild className="pl-0">
-          <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Blog
-          </Link>
-        </Button>
         <div className="space-y-2">
           <Post />
         </div>
