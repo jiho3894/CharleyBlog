@@ -1,0 +1,35 @@
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//3-1.gif)
+
+> #### 🐭 Header를 만드는 이유는?
+
+## 편리한 Navigation
+
+앞서 홈페이지에서 특정 페이지로 이동하기 위해서는 **Link**가 필요했었다 만약에 내가 특정 페이지로 들어갔을 때 다시 돌아가고 싶거나 또 다른 곳을 이동하고 싶을 때 현재 위치한 페이지에서 또 나머지 **Link**를 만들어야 한다 그렇다면 코드가 길어지기 때문에 좋지 않다 우리는 지금부터 **Router** 경로 바깥쪽에 **Header** 태그를 만들어 어떤 장소에서도 원하는 곳으로 이동이 가능한 **Navigation**을 만들 것이다 그 전에 파일 구성을 바꿔보도록 하겠습니다
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//3-2.png)
+
+## 메인 Component는 전부 Header로
+
+**Header**를 만들어 각 **component**의 중심 페이지를 모두 **Header**에서 조작할 수 있게 코드를 구성해보겠습니다 일단 이전 **Home.jsx** 파일에 있는 **Link**를 모두 **Header**로 이동시켜줍니다
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//3-3.png)
+
+이제 이 **Header** 파일을 어디에 구성을 해야 어떤 페이지로 이동해도 계속 보일 수 있게 할 수 있는가 현재 우리 라우터는 **Routes** 감싸고 그 안에 있는 **Route**들이 각 **path**마다 서로 다른
+**Component**를 보여주는 형식이다 그렇다면 **Header**는 **Routes**가 감싸고 있지 않은 그 위에다가 코드를 넣어주면 된다
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//3-4.png)
+
+> #### 🐭 헤더만 가능한거야?
+
+## Footer태그
+
+물론 다른 것도 가능하다 **Header**라는 태그는 제가 정의한 이름일 뿐 언제든지 다른 식으로 적어도 상관없다 그치만 협업 과정에서 모두가 알 수 있는 단어를 사용해야 나중에 다른 사람이 봤을 때도 이것이 무엇인지 정확하게 알기 위해서 명확하게 명시해주는 것이 좋다 예를 든다면 가장 밑에 제작사나 저작권 사업자 번호등을 모든 **component**에서 보여주고 싶다면 **footer**라고 명시하고** Routes** 밑에 넣어주면 된다 프로그래밍은 혼자 하는 업무가 아니니 사소한 부분도 신경 쓰는 것이 좋다
+
+## Header의 여러가지 활용
+
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//3-5.gif)
+
+위 영상처럼 어떤 곳으로 이동해도 위에 **Header**는 그대로 남아있다 이것뿐만 아니라 내가 무언가 검색하고 싶을거나, 프로필을 확인하고 싶은데 특정 페이지에서만 볼 수 있다면? 그건 사용자 경험이 매우 낮아지는 지름길이다 그렇기 때문에 항상 페이지를 만들 때 본인이 쓰기 쉬운 코드보단 사용자들이 만족할 수 있는 페이지를 만드는 게 프론트엔드의 핵심 업무라고 생각한다
+
+> #### 🐭 그럼 이제 뭐 할거야?
+
+## 사이드 미니 프로젝트
+
+본격적으로 예전 첫 포스팅에서 얘기한 **미니 프로젝트**를 만들어 보려고 한다 정말 간단하면서 내가 프로젝트 하면서 이건 진짜 좋은 거 같다 하는 것들을 담은 프로젝트를 만들 예정이다 이제부터 미니 프로젝트의 방향은 시리즈에 모두 담을 것이고 진행 방식만 설명해주고 왜 그렇게 진행했는지는 지금 같은 포스팅으로 따로 올리겠습니다 그럼 다음 포스팅에서 어떤 프로젝트를 만들지 포스팅해 보겠습니다

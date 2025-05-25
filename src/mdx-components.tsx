@@ -3,13 +3,24 @@ import Image, { ImageProps } from 'next/image';
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
-    h1: ({ children }) => <h1 style={{ color: 'red', fontSize: '48px' }}>{children}</h1>,
-    h2: ({ children }) => <h2 style={{ color: 'blue', fontSize: '32px' }}>{children}</h2>,
-    h3: ({ children }) => <h3 style={{ color: 'green', fontSize: '24px' }}>{children}</h3>,
-    h4: ({ children }) => <h4 style={{ color: 'purple', fontSize: '16px' }}>{children}</h4>,
-    h5: ({ children }) => <h5 style={{ color: 'orange', fontSize: '12px' }}>{children}</h5>,
-    h6: ({ children }) => <h6 style={{ color: 'pink', fontSize: '8px' }}>{children}</h6>,
-    img: (props) => <Image sizes="100vw" style={{ width: '100%', height: 'auto' }} {...(props as ImageProps)} />,
+    h1: ({ children }) => <h1 className="text-4xl font-bold text-red-500">{children}</h1>,
+    h2: ({ children }) => <h2 className="text-3xl font-bold text-blue-500">{children}</h2>,
+    h3: ({ children }) => <h3 className="text-2xl font-bold text-green-500">{children}</h3>,
+    h4: ({ children }) => <h4 className="text-xl font-bold text-purple-500">{children}</h4>,
+    h5: ({ children }) => <h5 className="text-lg font-bold text-orange-500">{children}</h5>,
+    h6: ({ children }) => <h6 className="text-base font-bold text-pink-500">{children}</h6>,
+    img: (props) => (
+      <Image
+        {...(props as ImageProps)}
+        width={800}
+        height={400}
+        sizes="100vw"
+        className="w-full h-auto"
+        alt={props.alt || 'Blog post image'}
+        priority={false}
+        quality={90}
+      />
+    ),
     ...components,
   };
 }

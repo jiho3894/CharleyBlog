@@ -1,0 +1,115 @@
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//11-1.png)
+
+### 하나의 객체로 쿼리 옵션 관리
+
+- 기존 useQuery를 비롯한 함수들의 옵션 정의된 통일되지 않았지만 v5버전부터 단일 객체로 전달받아 실행한다
+
+```javascript
+-(
+  // useQuery(key, fn, options)
+  +useQuery({ queryKey, queryFn, ...options })
+) - // useInfiniteQuery(key, fn, options)
+  +useInfiniteQuery({ queryKey, queryFn, ...options }) - // useMutation(fn, options)
+  +useMutation({ mutationFn, ...options }) - // queryClient.invalidateQueries(key, filters, options)
+  +queryClient.invalidateQueries({ queryKey, ...filters }, options);
+```
+
+### useQuery 일부 옵션 제거
+
+- 예측 가능하고 일관성 있는 useQuery의 onSuccess, onError, onSettled는 콜백으로 더 이상 제공하지 않는다
+
+### useQuery remove 메서드 제거
+
+- query가 active 한 상태에 remove 메서드 행위가 옳지 않다 판단해 명령 제거 형태로 변경해 queryClient에서 제공하는 `removeQueries`로 제거한다
+
+```javascript
+queryClient.removeQueries({ queryKey });
+```
+
+### typescript 최소 요구 버전 변경
+
+- 타입스크립트 최소 버전이 `4.7`으로 변경
+
+### cacheTime 명칭 변경
+
+- tanstack query cacheTime option을 설정할 때 명칭이 `gcTime`으로 변경된다
+
+```javascript
+const MINUTE = 1000 * 60;
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+-      // cacheTime: 10 * MINUTE,
++      gcTime: 10 * MINUTE,
+    },
+  },
+})
+```
+
+### QueryClient retry default 값 변경
+
+- 기존 retry가 기본 3에서 0으로 변경된다
+
+### useErrorBoundary 옵션 이름 변경
+
+- 기존 ErrorBoundary 컴포넌트명와 혼동을 방지하기 위해 `throwErrors`로 변경된다
+
+### Typescript fecting error type 변경
+
+- useQuery로 데이터를 가져올 때 발생하는 error 옵션의 타입을 `unknown`에서 `Error`로 변경한다
+
+### Window focus refetch는 focus 이벤트를 listen 하지않음
+
+- `visibilitychange` 이벤트를 지원하는 브라우저만 가능하도록 버전이 업그레이드되면서 과거 이벤트들을 listen 하지 않음
+
+### refetchPage 제거
+
+- 기존 모든 페이지를 refetch하는 refetchPage 옵션을 제거했다 대신 `Infinite Queries`가 Query 데이터에 저장하고 refetch 할 페이지 수를 제한하는 maxPage 옵션으로 설정할 수 있다.
+
+### Infinite Query maxPage 옵션 확장
+
+- maxPage 옵션 제공으로 infiniteQuery 페이지의 개수를 제한해 메모리 관리가 편리해진다.
+
+### Infinite Query Default 옵션 추가
+
+- 이제 useInfiniteQuery 옵션에 defaultPageParam 옵션을 추가해야 한다 해당 옵션을 제공하지 않으면 직렬화될 수 없는 undefined 페이지를 queryCache에 저장한다는 단점을 보완했습니다.
+
+```javascript
+useInfiniteQuery({
+   queryKey,
+-  // queryFn: ({ pageParam = 0 }) => fetchSomething(pageParam),
++  queryFn: ({ pageParam }) => fetchSomething(pageParam),
++  defaultPageParam: 0,
+   getNextPageParam: (lastPage) => lastPage.next,
+})
+```
+
+### Hydrate 명칭 변경
+
+- 기존 SSG 환경 세팅을 위해 데이터 상태를 Hydrate 컴포넌트 자식에 담았는데 해당 명칭을 `HydrationBoundary`로 변경하고 `useHydrate`훅은 제거했다
+
+```javascript
+- // <Hydrate state={dehydratedState}>
++ <HydrationBoundary state={dehydratedState}>
+  <App />
+- // </Hydrate>
++ </HydrationBoundary>
+```
+
+### useQuery 옵션명 변경
+
+- status : loading -> status : pending
+- isLoading -> isPending
+- isInitialLoading -> isLoading
+
+### useMutaion optimistic 데이터 옵션 추가
+
+- 낙관적 업데이트 ( optimistic update ) 수행 후 반환하는 값을 `variables`를 이용해 낙관적 업데이트를 간소화할 수 있다
+
+---
+
+출처
+
+- https://wonsss.github.io/library/tanstack-query-v5/
+- https://www.moonkorea.dev/React-TanStack-Query-v5-%EC%82%B4%ED%8E%B4%EB%B3%B4%EA%B8%B0-(%EB%A6%AC%EC%95%A1%ED%8A%B8%EC%BF%BC%EB%A6%AC)#%ED%95%98%EB%82%98%EC%9D%98-%EA%B0%9D%EC%B2%B4%EB%A1%9C-%EC%BF%BC%EB%A6%AC-%EC%98%B5%EC%85%98-%EA%B4%80%EB%A6%AC

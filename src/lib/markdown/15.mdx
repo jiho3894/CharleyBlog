@@ -1,0 +1,123 @@
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//15-1.png)
+2024년 12월 5일부로 **React19**가 정식 출시 되었다.
+서비스 통합과 신규 기능 개발로 인해 정신이 없다가 정식 출시 이후에 본격적으로 내용을 정리합니다. 앞으로 실제 React 환경에서 개발하면서 사용 가능성이 높음 3가지의 **usehook의** 변경 사항 및 기타 개선 사항을 설명하도록 하겠습니다.
+
+## usehook
+
+### useTransition
+
+이전 React18에서는 제약이 있어 **pending** 처리, 오류 핸들링 등을 수동으로 처리해야 하는 불편함이 있었습니다. 하지만, React19로 들어오면서 비동기 함수와 함께 사용이 가능해졌습니다. `isPending` 대한 상태값을 별도로 관리하지 않을 수 있었고 이로 인해 끊김 없는 UI를 제공할 수 있게 되었습니다.
+
+공식 문서 : https://ko.react.dev/reference/react/useTransition
+
+```typescript
+const UpdateName = ({ sendData }) => {
+  const [name, setName] = useState('');
+  const [error, setError] = useState();
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = () => {
+    startTransition(async () => {
+      // 비동기 함수 전달 가능
+      const error = await sendData();
+      if (error) {
+        setError(error);
+        return;
+      }
+      console.log('Data Fetching 완료');
+    });
+  };
+
+  return (
+    <div>
+      <input value={name} onChange={(event) => setName(event.target.value)} />
+      <button onClick={handleSubmit} disabled={isPending}>
+        Update
+      </button>
+      {error && <span>{error}</span>}
+    </div>
+  );
+};
+```
+
+### useOptimistic
+
+낙관적 업데이트를 할 수 있는 hook이 나왔습니다. 기존 tanstack-query 라이브러리 옵션에 있는 **onMutate**와 비슷한 기능으로 API 요청 후 응답받기 전, 유저가 인식했을 때 이미 데이터 응답받은 것 처럼 UI를 구성할 수 있는 기능입니다. 이로 인해 사용자에게 더 빠르고 부드러운 경험을 제공할 수 있습니다.
+
+공식 문서 : https://ko.react.dev/reference/react/useOptimistic
+
+```typescript
+const Thread = ({ messages, sendMessage }) => {
+  const formRef = useRef();
+  async function formAction(formData) {
+    addOptimisticMessage(formData.get('message'));
+    formRef.current.reset();
+    await sendMessage(formData);
+  }
+  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+    messages,
+    // 낙관적 업데이트 진행
+    (state, newMessage) => [
+      ...state,
+      {
+        text: newMessage,
+        sending: true,
+      },
+    ]
+  );
+
+  return (
+    <>
+      {optimisticMessages.map((message, index) => (
+        <div key={index}>
+          {message.text}
+          {!!message.sending && <small> (Sending...)</small>}
+        </div>
+      ))}
+      <form action={formAction} ref={formRef}>
+        <input type="text" name="message" placeholder="Hello!" />
+        <button type="submit">Send</button>
+      </form>
+    </>
+  );
+};
+```
+
+### use
+
+`use()`는 비동기 데이터를 처리하는 새로운 방식입니다.
+서버 컴포넌트나 클라이언트 컴포넌트에서 비동기 작업을 동기처럼 사용할 수 있게 해 줍니다.
+단순 비공기를 처리할 때 **useEffect**로 처리하지 않고 **suspense**로 유연하게 비동기 처리가 가능할 것으로 보입니다.
+
+```typescript
+const Message = ({ messagePromise }) => {
+  const messageContent = use(messagePromise);
+  return <p>Here is the message: {messageContent}</p>;
+};
+
+export const MessageContainer = ({ messagePromise }) => {
+  return (
+    <Suspense fallback={<p>⌛Downloading message...</p>}>
+      <Message messagePromise={messagePromise} />
+    </Suspense>
+  );
+};
+```
+
+공식 문서 : https://ko.react.dev/reference/react/use
+
+## 기타 개선 사항
+
+### ref props
+
+React19 이전에는 하위 컴포넌트에서 ref을 전달하기 위해서는 **forwardRef**을 사용했어야 가능했는데 이제는 **props로 ref 전달**이 가능해졌습니다. 별도의 세팅 없이 전달 가능해진 점에 코드 직관성이 늘어났다고 볼 수 있습니다.
+
+### findDOMNode 제거
+
+react-dom에서 제공하는 **findDOMNode**를 통한 dom 직접 접근을 제거했습니다. 따라서 dom 접근이 필요한 경우 useEffect를 사용해 컴포넌트 렌더링 후 useRef을 통해 접근해야 합니다.
+
+## CRA 지원 중단
+
+react19에서는 더 이상 Create React App(CRA)를 권장하지 않습니다. 그 이후로는 **Webpack** 기반으로 초기 빌드 속도 저하와 최신 기능들을 지원하기 어렵다고 판단했다고 합니다. 이제는 react로 개발한다면 vite 등 다른 번들 서비스와 함께 사용하는 게 좋을 것 같습니다.
+
+issue 링크 : https://github.com/facebook/create-react-app/commit/b532a58792ea79ba7b0e85c1cb42b2a36dafe276

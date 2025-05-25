@@ -1,0 +1,78 @@
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//12-1.png)
+
+## Swift에서 WebView 활용하기
+
+앱을 개발하기 위해선 네이티브로 개발해야 하지만 웹뷰를 활용해 웹 개발로 앱을 배포할 수 있다.
+**웹뷰의 장단점**을 파악하고 실제로 발생을 단점을 극적으로 해결한 방법을 공유한다.
+
+## WebView 장점
+
+앱을 아카이빙하고 심사를 올리는 과정은 우리에게 큰 리소스 손해를 가져온다.
+하지만 앱 내부에 있는 화면을 웹으로 개발한다면 웹은 까다로운 심사과정 없이
+**빠르게 배포**할 수 있고 **즉시 반영**이 가능하다는 장점이 있다. 당장 웹으로 개발을 해야 하는 상황이며
+빠르게 수정이 필요한 조직에 있다면 웹뷰를 고려하는 것도 좋다.
+
+## WebView 단점
+
+클라이언트마다 웹 페이지를 호출하기 때문에 서버 자원이 많이 들고 네이티브는 이미 사용자가 앱스토어에서 빌드된 앱을 다운받고, 웹뷰는 접근할 때 리소스를 다운받기 때문에 **네이티브보다 성능이 느릴 수밖에 없다.**
+
+## 실제로 경험한 성능 저하 이슈
+
+기존 웹에서만 개발할 때는 성능을 크게 고려하지 않아도 연산 과정 때문에 레이아웃이 끊기는 경험을 제공하지 않았지만 웹에서 사용하는 `<textarea/>`를 **foucs** 했을 때 웹뷰 화면이 같이 줄어들면서 **끊기는 현상 발생**했었다. 레아이웃 연산에 문제가 있다는 것은 디버깅을 통해 확인했지만 근본적으로 해결할 수 없었다.
+
+## 웹 환경에서 성능 해결하기
+
+처음에는 화면에서 가져온 데이터가 너무 많아서 레이아웃이 변경되면서 모든 데이터의 크기를 재연산하면서 발생한 이슈라고 생각해 **viewport** 에 보이는 부분만 렌더링하고 나머지는 스크롤 할 때 보이도록 하는 것이 중요하다고 생각해 `react-virtualized` 라는 라이브러리를 활용해 해당 이슈를 해결하려고 했다.
+
+**하지만**
+기존에는 끊기는 것과 더해 데이터가 많아질수록 더욱 느려지는 현상을 react-virtualized를 통해 해결했지만, 근본적으로 키보드가 올라오면서 웹뷰가 줄어들 때 발생하는 **웹뷰 끊김 현상은 해결되지 않았다.**
+
+## 앱 환경에서 성능 해결하기
+
+테스트 과정에서 웹뷰의 크기를 고정했을 때 끊기는 이슈가 없다는 것을 파악했고 웹뷰 레이아웃 자체를 **정적으로** 제공하지만, **키보드나 앱 레이아웃의 변화가 생길 때만** 그 크기를 계산해서 웹뷰 레이아웃을 한 번만 연산해주면 가능하지 않을까 생각해 정보를 찾아봤다.
+
+### GeometryReader
+
+간단하게 설명하면 현재 **View의 다양한 크기와 위치에 접근**할 수 있다. 이것으로 현재 앱 화면 전체를 웹뷰 레이웃으로 가져갈 거기 때문에 `onAppear`과정에서 앱의 높이를 먼저 계산한다.
+
+```swift
+.onAppear {
+	webViewHeight = geometry.size.height
+}
+```
+
+### NotificationCenter
+
+**NotificationCenter의** Observer에 키보드가 나타나고 사라지는 것을 감지해 해당 키보드 크기만큼 현재 웹뷰의 레이아웃을 조정해주는 로직을 추가해준다.
+
+```swift
+NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: .main) { notification in
+         guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+         keyboardHeight = keyboardFrame.height - geometry.safeAreaInsets.bottom
+         print(keyboardFrame.height, geometry.safeAreaInsets.bottom)
+       }
+NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+         keyboardHeight = 0
+       }
+```
+
+### WebView Layout
+
+위 내용을 활용하여 처음 앱을 실행했을 때 크기를 확인하고 이후 **키보드 변경에 따른 레이아웃을 정적으로 변경**하도록 수정했다. 덕분에 키보드가 올라오는 동안 연산은 한 번만 진행했고 **끊김 없는 웹뷰 레이아웃**을 구성할 수 있었다.
+
+```swift
+GeometryReader { geometry in
+        MyWebView(url: url, isPresentingWebView: $isPresentingWebView)
+          .frame(height: (webViewHeight ?? geometry.size.height) - keyboardHeight)
+          .onAppear {
+            webViewHeight = geometry.size.height
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: .main) { notification in
+              guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+              keyboardHeight = keyboardFrame.height - geometry.safeAreaInsets.bottom
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+              keyboardHeight = 0
+            }
+          }
+      }
+```

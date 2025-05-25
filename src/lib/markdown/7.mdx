@@ -1,0 +1,62 @@
+Jira, CLICKUP 등 task 작업번호를 branch로 활용해 작업하는 환경에서보다 안정적인 공간에서 작업할 수 있도록 현재 내가 작업하는 공간에 commit 하는 것이 옳은 건지 검사가 필요하다고 생각해 해당 내용을 고민함
+추가로 .git/hooks를 활용한다면 신규 입사자가 올 때마다 해당 코드를 적용해줘야 하는 불편함이 있다. 그래서 husky + lint-staged 라이브러리를 활용해 git hooks를 지원받아 모두가 동일한 컨벤션 환경에서 작업하도록 설정하고 추가로 prettier, eslint까지 같이 검사하도록 설정합니다.
+
+### husky, lint-staged 설치
+
+```
+npm install --save-dev husky lint-staged
+or
+yarn add -D husky lint-staged
+or
+pnpm i husky lint-staged -D
+```
+
+### script setting
+
+```
+"devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1"
+  },
+
+ "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix" // eslint 검사
+      "prettier --write", //prettier 검사
+    ]
+  }
+```
+
+### prepare-commit-msg
+
+```
+#!/bin/bash
+
+# 브랜치의 이름을 가져옵니다
+current_branch=$(git branch --show-current)
+
+# CLICKUP Task 번호를 가져옵니다
+branch_number=$(echo "$current_branch" | sed 's/[^0-9]*//g')
+
+# 현재 내가 작성한 커밋 메세지의 값을 가져옵니다
+commit_message_file="$1"
+commit_message=$(cat "$commit_message_file")
+
+# 내 브랜치 넘버와 커밋 메세지 넘버가 다를 경우 commit 제한
+if [[ ! $commit_message = *"$branch_number"* ]]; then
+  echo "ERROR: Commit message must include '$branch_number'"
+  exit 1
+fi
+```
+
+### 테스트 결과
+
+아래 사진처럼 현재 branch number는 1234이고 작업한 task가 1235일 경우 commit 작성 시 에러가 나와 commit을 할 수 없는 상태
+
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//7-1.png)
+
+예상한 대로 작업했을면 정상 commit
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//7-2.png)
+
+참고 블로그
+https://velog.io/@tjdgus0528/Git-hooks-%EC%9D%B4%EB%9E%80-Husky-lint-staged

@@ -1,0 +1,80 @@
+### use client 사용
+
+이제 **Next13** 이상에서 React가 제공하는 **usehook을** 사용하기 위해서 사용하는 파일의 최상단에`"use client"`를 입력해 클라이언트 번들로 간주하도록 세팅한다. 상태에 의존하지 않거나 백엔드 데이터를 가져오는 컴포넌트는 서버 컴포넌트로 따로 활용할 수 있다.
+
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//14-1.png)
+
+```typescript
+// 클라이언트 컴포넌트
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+const Navigation = () => {
+  const pathName = usePathname(); // "use client"가 없으면 에러 발생
+  return (
+    <nav>
+      <ul>
+        <li>
+          <Link href="/">Home {pathName === '/' && '^^'}</Link>
+        </li>
+        <li>
+          <Link href="/myPage">MyPage {pathName === '/myPage' && '^^'}</Link>
+        </li>
+      </ul>
+    </nav>
+  );
+};
+
+export default Navigation;
+```
+
+```typescript
+// 서버 컴포넌트
+import { API_URL } from '../page';
+
+interface PageParamsProps {
+  params: {
+    id: string;
+  };
+}
+
+const getDetailMovie = async (id: string) => {
+  return await fetch(`${API_URL}/${id}`).then((response) => response.json());
+};
+
+const MovieDatail = async ({ params }: PageParamsProps) => {
+  const movie = (await getDetailMovie(params.id)) as any;
+  return (
+    <div>
+      movie id : {movie.id} , movie title : {movie.original_title}
+    </div>
+  );
+};
+
+export default MovieDatail;
+```
+
+### Routing Special Files
+
+NextJS의 가장 큰 장점은 따로 Routing 관련된 라이브러리를 설치하지 않고 **Routing Convention이 명확**하다는 것이다. 이번 Next13 이상에서 스페셜 파일명이 달라졌다.
+
+- \_app.tsx + \_documents.tsx -> layout.tsx + template.tsx
+- loading.tsx ( 새롭게 추가 )
+- 404.tsx -> not-found.tsx
+
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//14-2.png)
+
+중첩된 경로에서 세그먼트의 구성 요소는 부모 세그먼트의 구성 요소 안에 중첩된다.
+
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//14-3.png)
+
+### Route Group
+
+상황에 따라 기존 부모 세그먼트 구성 요소의 패턴을 무시해야하는 상황이 생길 수 있다. 예를들면 상세페이지인데 **독립된 레이아웃**을 보여줘야 하는 경우, 페이지 경로의 레벨이 동일하지만 상황에 따라 **다른 레이아웃을 노출** 시켜야 하는 경우 해당 페이지들의 부모 파일은 `( page file name )`으로 표현해서 그룹으로 설정할 수 있다. 아래 사진의 케이스는 `account`와 `cart`는 같은 `shop`의 `layout` 세그먼트를 감싸고 있지만 `checkout`은 `app`의 `layout`만을 가지고 있는다.
+
+![](https://dctwxpkwzbaeulfrrvgo.supabase.co/storage/v1/object/public/image//14-4.png)
+
+코드 : https://github.com/jiho3894/charleynext14
+참고 : https://nextjs.org/docs/app/building-your-application/routing
